@@ -56,10 +56,10 @@ class ApolloClient
      */
     private $modifyStatus = false;
 
-    /**
-     * @var array
-     */
-    private $envArray = [];
+    public function __construct()
+    {
+        $this->rootPath = dirname($_SERVER['DOCUMENT_ROOT'] . '../');
+    }
 
     /**
      * noCacheRsync 不带缓存的Http接口
@@ -68,8 +68,6 @@ class ApolloClient
      */
     public function noCacheRsync()
     {
-        $this->rootPath = dirname($_SERVER['DOCUMENT_ROOT'] . '../');
-
         $namespaceNameArray = explode(',', $this->namespaceNames);
         foreach ($namespaceNameArray as $namespaceName) {
             $this->setReleaseKey($namespaceName);
@@ -99,18 +97,18 @@ return {$resArray};
 EOF;
             file_put_contents($this->getSaveConfigFile($namespaceName), $content);
         }
-
-        $this->modifyStatus && $this->saveToEnv();
     }
 
     /**
      * saveToEnv 保存至 .env
+     *
      * @author baofan
      */
-    private function saveToEnv()
+    public function saveToEnv()
     {
         $dirs = new DirectoryIterator($this->rootPath . '/apollo');
 
+        $envArray = [];
         /** @var Directory $dirInfo */
         foreach ($dirs as $dirInfo) {
             if ($dirInfo->getExtension() !== 'php') {
@@ -119,22 +117,64 @@ EOF;
 
             $configArray = include $dirInfo->getPathname();
 
-            $this->envArray = array_merge($this->envArray, $configArray['configurations']);
+            $envArray = array_merge($envArray, $configArray['configurations']);
         }
 
-        if ($this->envArray) {
+        if ($envArray) {
             $fileEnv = $this->rootPath . DIRECTORY_SEPARATOR . '.env';
 
             file_put_contents($fileEnv, '');
 
             usleep(100);
 
-            foreach ($this->envArray as $key => $value) {
+            foreach ($envArray as $key => $value) {
                 $key = strtoupper($key);
                 file_put_contents($fileEnv, "{$key}={$value}" . PHP_EOL, FILE_APPEND);
             }
 
-            $this->envArray     = [];
+            $this->modifyStatus = false;
+        }
+    }
+
+    /**
+     * saveToYml 保存至 parameters.yml
+     *
+     * @author baofan
+     */
+    public function saveToYml()
+    {
+        $dirs = new DirectoryIterator($this->rootPath . '/apollo');
+
+        $ymlArray = [];
+        /** @var Directory $dirInfo */
+        foreach ($dirs as $dirInfo) {
+            if ($dirInfo->getExtension() !== 'php') {
+                continue;
+            }
+
+            $configArray = include $dirInfo->getPathname();
+
+            $ymlArray = array_merge($ymlArray, $configArray['configurations']);
+        }
+
+        if ($ymlArray) {
+            foreach ($ymlArray as &$value) {
+                if (!is_null($tmp = json_decode($value, true)))
+                    $value = $tmp;
+            }
+
+            $fileYml = $this->rootPath . DIRECTORY_SEPARATOR . 'app/config/parameters.yml';
+
+            file_put_contents($fileYml, '');
+
+            usleep(100);
+
+            $ymlContent = preg_replace(['/^---\\n/', '/...\\n$/'], '', yaml_emit([
+                'parameters' => $ymlArray,
+            ]));
+
+            file_put_contents($fileYml, "{$ymlContent}" . PHP_EOL, FILE_APPEND);
+
             $this->modifyStatus = false;
         }
     }
@@ -259,6 +299,28 @@ EOF;
     public function setIp($ip)
     {
         $this->ip = $ip;
+
+        return $this;
+    }
+
+    /**
+     * ApolloClient  ModifyStatus
+     *
+     * @return bool
+     */
+    public function getIsModifyStatus()
+    {
+        return $this->modifyStatus;
+    }
+
+    /**
+     * @param bool $modifyStatus
+     *
+     * @return ApolloClient
+     */
+    public function setModifyStatus(bool $modifyStatus): ApolloClient
+    {
+        $this->modifyStatus = $modifyStatus;
 
         return $this;
     }
