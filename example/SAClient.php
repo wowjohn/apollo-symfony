@@ -27,14 +27,9 @@ class SAClient
                 $apolloClient->noCacheRsync();
 
                 /**
-                 * symfony3 保存至 yml
+                 * symfony4 保存至 .env
                  */
-                $apolloClient->getIsModifyStatus() && $apolloClient->saveToYml();
-
-//                /**
-//                 * symfony4 保存至 .env
-//                 */
-//                $apolloClient->getIsModifyStatus() && $apolloClient->saveToEnv();
+                $apolloClient->getIsModifyStatus() && $apolloClient->saveToEnv();
             } catch (Exception $exception) {
                 echo($exception->getMessage());
             }

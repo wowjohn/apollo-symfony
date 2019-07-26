@@ -137,49 +137,6 @@ EOF;
     }
 
     /**
-     * saveToYml 保存至 parameters.yml
-     *
-     * @author baofan
-     */
-    public function saveToYml()
-    {
-        $dirs = new DirectoryIterator($this->rootPath . '/apollo');
-
-        $ymlArray = [];
-        /** @var Directory $dirInfo */
-        foreach ($dirs as $dirInfo) {
-            if ($dirInfo->getExtension() !== 'php') {
-                continue;
-            }
-
-            $configArray = include $dirInfo->getPathname();
-
-            $ymlArray = array_merge($ymlArray, $configArray['configurations']);
-        }
-
-        if ($ymlArray) {
-            foreach ($ymlArray as &$value) {
-                if (!is_null($tmp = json_decode($value, true)))
-                    $value = $tmp;
-            }
-
-            $fileYml = $this->rootPath . DIRECTORY_SEPARATOR . 'app/config/parameters.yml';
-
-            file_put_contents($fileYml, '');
-
-            usleep(100);
-
-            $ymlContent = preg_replace(['/^---\\n/', '/...\\n$/'], '', yaml_emit([
-                'parameters' => $ymlArray,
-            ]));
-
-            file_put_contents($fileYml, "{$ymlContent}" . PHP_EOL, FILE_APPEND);
-
-            $this->modifyStatus = false;
-        }
-    }
-
-    /**
      * getSaveConfigFile 获取保存文件 path
      *
      * @param $namespaceName

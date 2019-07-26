@@ -16,25 +16,12 @@ do {
         $apolloClient->noCacheRsync();
 
         /**
-         * symfony3 保存至 yml
-         */
-        $apolloClient->getIsModifyStatus() && $apolloClient->saveToYml();
-
-//                /**
-//                 * symfony4 保存至 .env
-//                 */
-//                $apolloClient->getIsModifyStatus() && $apolloClient->saveToEnv();
+        * symfony4 保存至 .env
+        */
+        $apolloClient->getIsModifyStatus() && $apolloClient->saveToEnv();
     } catch (Exception $exception) {
         echo($exception->getMessage());
     }
     
 } while (true);
-```
-
-symfony 3 需安装 yaml 扩展 (Docker 方式)
-```bash
-RUN apt-get install libyaml-dev
-```
-```bash
-RUN pecl install yaml && docker-php-ext-enable yaml
 ```
