@@ -58,7 +58,7 @@ class ApolloClient
 
     public function __construct()
     {
-        $this->rootPath = dirname($_SERVER['DOCUMENT_ROOT'] . '../');
+        $this->rootPath = preg_replace('/(vendor[\s\S]*)/', '', __DIR__);
     }
 
     /**
